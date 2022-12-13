@@ -73,13 +73,13 @@ void loop() {
 
 void SetLightRGB(){
   int R = 0, G = 0, B = 0;
-  if(DataRecu == "\"001\""){
+  if(DataRecu == "001"){
     R = 255;
 
   }
-  if(DataRecu == "\"010\"")
+  if(DataRecu == "010")
     G = 255;
-  if(DataRecu == "100")
+  if(DataRecu == "00")
     B = 255;
   Brightness = Speed; // "Speed" provient de MQTTConnector, variable global qui recoit l'entier provenant du RPC
                       // sur le set du brightness.

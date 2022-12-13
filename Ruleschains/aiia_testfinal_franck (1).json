@@ -1,0 +1,275 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "AIIA_TestFinal_Franck",
+    "type": "CORE",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null
+  },
+  "metadata": {
+    "firstNodeIndex": 4,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1334,
+          "layoutY": 46
+        },
+        "type": "org.thingsboard.rule.engine.mail.TbSendEmailNode",
+        "name": "Send email",
+        "debugMode": true,
+        "configuration": {
+          "useSystemSmtpSettings": true,
+          "smtpHost": "localhost",
+          "smtpPort": 25,
+          "username": null,
+          "password": null,
+          "smtpProtocol": "smtp",
+          "timeout": 10000,
+          "enableTls": false,
+          "tlsVersion": "TLSv1.2",
+          "enableProxy": false,
+          "proxyHost": null,
+          "proxyPort": null,
+          "proxyUser": null,
+          "proxyPassword": null
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 454,
+          "layoutY": 56
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Transfert de données au metadata",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "metadata.generateur = msg.StateB3 ; \nvar state =  \"\"; \nstate += \"Etat Boutons : \" + String(msg.StateB1)  + \" \" + String(msg.StateB2) + \" \" + String(msg.StateB3);\n\nmetadata.EtatBoutons = state; \nreturn {msg: msg, metadata: metadata, msgType: msgType};\n"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 450,
+          "layoutY": 355
+        },
+        "type": "org.thingsboard.rule.engine.action.TbClearAlarmNode",
+        "name": "Arret Mode Alarme",
+        "debugMode": true,
+        "configuration": {
+          "alarmDetailsBuildJs": "var details = {};\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n}\nreturn (msg);",
+          "alarmType": "Haute Temperature"
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 711,
+          "layoutY": 49
+        },
+        "type": "org.thingsboard.rule.engine.action.TbCreateAlarmNode",
+        "name": "Instantiation Mode Alarme",
+        "debugMode": true,
+        "configuration": {
+          "alarmDetailsBuildJs": "var details = {};\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n}\nreturn details;",
+          "useMessageAlarmData": false,
+          "alarmType": "Haute Temperature",
+          "severity": "CRITICAL",
+          "propagate": false,
+          "relationTypes": []
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 260,
+          "layoutY": 202
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
+        "name": "Génération d'alarme",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "return !(msg.StateB1 == 0 && msg.StateB2 == 0 && msg.StateB3 == 0) ; "
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 61,
+          "layoutY": 303
+        },
+        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
+        "name": "AlarmState- Generator",
+        "debugMode": false,
+        "configuration": {
+          "msgCount": 3,
+          "periodInSeconds": 3,
+          "jsScript": "//var msg = {AlarmState: Math.floor(Math.random() * 2)};\nvar msg = {AlarmState: 1}\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "originatorId": null,
+          "originatorType": null
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 1046,
+          "layoutY": 45
+        },
+        "type": "org.thingsboard.rule.engine.mail.TbMsgToEmailNode",
+        "name": "Présence Email",
+        "debugMode": false,
+        "configuration": {
+          "fromTemplate": "ido@ccnb.ca",
+          "toTemplate": "efnkeubo01@monccnb.ca",
+          "ccTemplate": "",
+          "bccTemplate": null,
+          "subjectTemplate": "Etat des boutons.",
+          "mailBodyType": null,
+          "isHtmlTemplate": null,
+          "bodyTemplate": "Une personne vient d'actionner un bouton avec les états : \n${EtatBoutons}\n\nMerci.\n\n\nCeci est un message automatique,  ne pas répondre."
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 783,
+          "layoutY": 158
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Status True",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "var newMsg = {};\nnewMsg.method = 'ButonState';\nmsgType = 'RPC message';\n\nvar color = \"\";\ncolor += String(msg.StateB1) + String(msg.StateB2) + String(msg.StateB3);\n // 100 ou 010 ou 001\n\nnewMsg.params = color;\nnewMsg.color = 'blue';\n\nreturn {msg: newMsg, metadata: metadata, msgType: msgType}; "
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1319,
+          "layoutY": 144
+        },
+        "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+        "name": "Status True",
+        "debugMode": true,
+        "configuration": {
+          "timeoutInSeconds": 60
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1054,
+          "layoutY": 147
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
+        "name": "Check RPC msg",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "return msgType == 'RPC message'; "
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 723,
+          "layoutY": 354
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Status True",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "var newMsg = {};\nnewMsg.method = 'ButonState';\nmsgType = 'RPC message';\n\nvar color = \"\";\ncolor += String(msg.StateB1) + String(msg.StateB2) + String(msg.StateB3);\n // 100 ou 010 ou 001 ou 000\n\nnewMsg.params = color;\nnewMsg.color = 'blue';\n\nreturn {msg: newMsg, metadata: metadata, msgType: msgType}; "
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1239,
+          "layoutY": 347
+        },
+        "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+        "name": "Status True",
+        "debugMode": true,
+        "configuration": {
+          "timeoutInSeconds": 60
+        }
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 974,
+          "layoutY": 350
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
+        "name": "Check RPC msg",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "return msgType == 'RPC message'; "
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 1,
+        "toIndex": 3,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 3,
+        "toIndex": 6,
+        "type": "Created"
+      },
+      {
+        "fromIndex": 4,
+        "toIndex": 1,
+        "type": "True"
+      },
+      {
+        "fromIndex": 4,
+        "toIndex": 2,
+        "type": "False"
+      },
+      {
+        "fromIndex": 4,
+        "toIndex": 10,
+        "type": "False"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 0,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 9,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 9,
+        "toIndex": 8,
+        "type": "True"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 12,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 12,
+        "toIndex": 11,
+        "type": "True"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}
